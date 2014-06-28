@@ -19,6 +19,6 @@ def printDecToBin(m):
 			print("0", end="")
 		counter = counter + 1
 
-# printDecToBin(1098.8449351194)
+printDecToBin(1098.8449351194)
 # print(bin(1098))
 
