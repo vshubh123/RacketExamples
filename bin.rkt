@@ -6,16 +6,16 @@
 ; Example (decimal->binary 5.75 3) -> 101.110
 ; Example (decimal->binary -5.75 2) -> -101.11
 
-#lang racket
+#lang racket/base
 
-(require racket/flonum)
+(require racket/flonum racket/list racket/contract)
 
 (provide (contract-out
-			[decimal->binary (-> (and/c number? real?)
-								 (and/c number? exact-integer? positive? (not/c zero?))
-								 any/c)]))
+			[decimal->binary (->* ((and/c number? real?))
+								  ((and/c number? exact-integer? positive? (not/c zero?)))
+								  any/c)]))
 
-(define (decimal->binary num num-dec-digits)
+(define (decimal->binary num [num-dec-digits 14])
 
 	; decimal-num will be called only if num is a flonum
 	;
@@ -36,20 +36,24 @@
 			[else (cons 1 (decimal-num (- dnum (expt 2 (- count))) (add1 count)))]))
 
 	; Calculates the binary respresentation
-	(cond
+	(define (calculate toCalculate)
+
+		(cond
 
 		; If the number is negative, print a minus, and recalculate as a positive number
-		[(negative? num) (printf "-")
-						 (decimal->binary (- num) num-dec-digits)]
+		[(negative? toCalculate) (printf "-")
+						 (calculate (- toCalculate) num-dec-digits)]
 
 		; If the number is an integer, simply print out the binary representation
-		[(exact-integer? num) (printf "~b\n" num)]
+		[(exact-integer? toCalculate) (printf "~b\n" toCalculate)]
 
 		; If the number is floating point, print the whole number, then create a list of
 		; num-dec-digits, which is converted to a string, then printed out
-		[(flonum? num)
+		[(flonum? toCalculate)
 		 (printf "~b.~a\n"
-				 (fl->exact-integer (truncate num))
-				 ((compose list->string)
+				 (fl->exact-integer (truncate toCalculate))
+				 (list->string
 				 	(map (lambda (x) (integer->char (+ x 48)))
-					   	 (decimal-num (- num (fl->exact-integer (truncate num))) 1))))]))
+					   	 (decimal-num (- toCalculate (fl->exact-integer (truncate toCalculate))) 1))))]))
+
+	(calculate num))
